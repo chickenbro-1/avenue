@@ -28,14 +28,10 @@
      */
     function parseQuizData() {
         // 每个问题的标题区块一般带有 .dhdg_2 这个类（包含“Question X”）
-        const questionDivs = document.querySelectorAll('div.dhdg_2');
+        const questionDivs = document.querySelectorAll('div.dco');
         const quizData = [];
 
         questionDivs.forEach((questionDiv) => {
-            // 1. 获取题号、分值等信息
-            //    一般在形如 <h2> <strong>Question 1</strong> (1 point)</h2>
-            const h2El = questionDiv.querySelector('h2');
-            const questionNumber = h2El ? h2El.innerText.trim() : 'Unknown Question';
 
             // 2. 获取题目容器（通常下一个兄弟节点包含题干和选项）
             const questionContainer = questionDiv.nextElementSibling;
@@ -69,7 +65,7 @@
             });
 
             quizData.push({
-                questionNumber,
+
                 questionText,
                 answers
             });
