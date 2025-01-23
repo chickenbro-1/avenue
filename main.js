@@ -1,20 +1,22 @@
 // ==UserScript==
 // @name         D2L Quiz Scraper
 // @namespace    http://tampermonkey.net/
-// @version      0.2
+// @version      0.4
 // @description  抓取 D2L Quiz 中的选择题题目与选项
 // @author       William
 // @match https://avenue.cllmcmaster.ca/d2l/lms/quizzing/user/attempt/*
 // @grant        none
 // ==/UserScript==
 
-(function() {
+(function () {
     'use strict';
 
     // 当页面加载或更新 DOM 后执行
     window.addEventListener('load', () => {
         const quizData = parseQuizData();
-        console.log('抓取结果: ', quizData);
+        if(quizData.length != 0){
+            console.log('抓取结果: ', quizData);
+        }
 
         // 这里可以根据需要做进一步处理，比如：
         // 1) 将数据上传到服务器
@@ -64,11 +66,12 @@
                 });
             });
 
-            quizData.push({
-
-                questionText,
-                answers
-            });
+            if (questionText != '' || questionText.length != 0) {
+                quizData.push({
+                    questionText,
+                    answers
+                });
+            }
         });
 
         return quizData;
