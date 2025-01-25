@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         D2L Quiz Scraper
 // @namespace    http://tampermonkey.net/
-// @version      1.2
+// @version      1.3
 // @description  抓取 D2L Quiz 中的选择题题目与选项，并在获取答案后自动填写
 // @author       GrumpyCat
 // @match        https://avenue.cllmcmaster.ca/d2l/lms/quizzing/user/attempt/*
@@ -125,7 +125,13 @@
         // 6. 将图标和面板一起放入容器，再放进页面
         container.appendChild(toggleIcon);
         container.appendChild(panel);
-        document.body.appendChild(container);
+
+        const targetDiv = document.getElementById('d_content');
+        if (targetDiv) {
+            targetDiv.appendChild(container); // 插入到 d_content 内
+        } else {
+            console.error('Target div with id "d_content" not found!');
+        }
     }
 
     /**
