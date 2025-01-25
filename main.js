@@ -15,9 +15,11 @@
         const quizData = parseQuizData();
         if (quizData.length != 0) {
             console.log('抓取结果: ', quizData);
-            // 发送到http://34.205.62.161:8000/api/answer-questions-detail/
             // 请求方式post JSON格式
-            postQuizData(quizData)
+            const requestData = {
+                "questions_data":quizData
+            }
+            postQuizData(requestData)
                 .then((res) => {
                     // res 就是后端返回的 JSON 数据
                     console.log('后端返回的数据:', res);
@@ -36,7 +38,7 @@
 
     function postQuizData(quizData) {
         // 发起 POST 请求，发送 JSON 数据
-        fetch('http://34.205.62.161:8000/api/answer-questions-detail/', {
+        fetch('https://techflowlab.xyz/api/answer-questions/', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
