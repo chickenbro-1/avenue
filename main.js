@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         D2L Quiz Scraper
 // @namespace    http://tampermonkey.net/
-// @version      1.4
+// @version      1.5
 // @description  抓取 D2L Quiz 中的单选选择题题目与选项，并在获取答案后自动填写
 // @author       GrumpyCat
 // @match        https://avenue.cllmcmaster.ca/d2l/lms/quizzing/user/attempt/*
@@ -33,7 +33,7 @@
             });
     });
 
-    function autoSaving(){
+    function autoSaving() {
         const savingButtonArray = document.querySelectorAll('div.dhdg_2 d2l-button-icon');
         savingButtonArray.forEach(btn => {
             btn.click();
@@ -43,7 +43,7 @@
     function parseQuizData() {
         const questionDivs = document.querySelectorAll('div.dco');
         const quizData = [];
-        let id = 1;  
+        let id = 1;
         questionDivs.forEach((questionDiv) => {
             const questionContainer = questionDiv.nextElementSibling;
             if (!questionContainer) return;
@@ -59,12 +59,20 @@
                 const answerText = answerBlock
                     ? decodeHtml(answerBlock.getAttribute('html'))
                     : '';
+                if (answerText == '' || answerText.length == 0) {
+                    const answerBoolean = row.querySelector('label#z_r');
+                    if(answerBoolean){
+                        const labelText = answerBoolean.textContent.trim();
+                        console.log(labelText);
+                        answerText = labelText;
+                    }
+                }
                 const radioInput = row.querySelector('input[type="radio"]');
                 const inputId = radioInput ? radioInput.id : null;
                 answers.push({
-                    index: index++,          
+                    index: index++,
                     text: answerText,
-                    inputId: inputId        
+                    inputId: inputId
                 });
             });
             if (questionText) {
