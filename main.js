@@ -1,8 +1,8 @@
 // ==UserScript==
 // @name         D2L Quiz Scraper
 // @namespace    http://tampermonkey.net/
-// @version      1.8
-// @description  抓取 D2L Quiz 中的单选选择题题目与选项，并在获取答案后自动填写
+// @version      2.0
+// @description  抓取 D2L Quiz 中的[单选][判断]题目与选项，并在获取答案后自动填写
 // @author       GrumpyCat
 // @match        https://avenue.cllmcmaster.ca/d2l/lms/quizzing/user/attempt/*
 // @grant        GM_xmlhttpRequest
