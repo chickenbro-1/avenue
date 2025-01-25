@@ -13,6 +13,7 @@
     'use strict';
 
     window.addEventListener('load', () => {
+        initControlPanel();
         // 1. 获取本地的 quizData（题目+选项+选项对应的<input> ID等）
         const quizData = parseQuizData();
         if (quizData.length === 0) {
@@ -40,6 +41,93 @@
                 console.error('请求出错:', error);
             });
     });
+
+
+    /**
+ * 初始化控制面板和图标
+ * 在脚本最后或合适位置插入此函数，并在 window.load 回调中调用它
+ */
+    function initControlPanel() {
+        // 1. 注入样式(可自定义)
+        const style = document.createElement('style');
+        style.textContent = `
+        /* 容器：固定位置，右下角示例 */
+        #myScript-controlContainer {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 9999; /* 保证显示在最前 */
+            font-family: sans-serif;
+        }
+        /* 图标按钮：可根据需要换成自己的 icon */
+        #myScript-toggleIcon {
+            width: 40px;
+            height: 40px;
+            background-color: #007bff;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            font-weight: bold;
+            box-shadow: 0 0 5px rgba(0,0,0,0.3);
+        }
+        #myScript-toggleIcon:hover {
+            background-color: #0056b3;
+        }
+        /* 控制面板：默认隐藏，可放置内部内容 */
+        #myScript-panel {
+            margin-top: 8px;
+            background-color: #f8f9fa;
+            padding: 12px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            display: none; /* 默认不显示 */
+            min-width: 220px;
+        }
+    `;
+        document.head.appendChild(style);
+
+        // 2. 创建容器
+        const container = document.createElement('div');
+        container.id = 'myScript-controlContainer';
+
+        // 3. 创建“图标”元素
+        const toggleIcon = document.createElement('div');
+        toggleIcon.id = 'myScript-toggleIcon';
+        toggleIcon.textContent = `
+        <svg t="1737822129845" class="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="4287"
+            width="200" height="200">
+            <path
+                d="M213.333333 682.666667v42.666666a85.333333 85.333333 0 0 0 78.933334 85.12L298.666667 810.666667h85.333333a42.666667 42.666667 0 0 1 0 85.333333H298.666667a170.666667 170.666667 0 0 1-170.666667-170.666667v-42.666666a42.666667 42.666667 0 0 1 85.333333 0z m560.042667-242.602667l170.666667 426.666667a21.333333 21.333333 0 0 1-19.84 29.269333h-45.994667a21.333333 21.333333 0 0 1-19.797333-13.397333L812.544 768h-174.506667l-45.781333 114.602667a21.333333 21.333333 0 0 1-19.84 13.397333H526.506667a21.333333 21.333333 0 0 1-19.797334-29.269333l170.666667-426.666667a21.333333 21.333333 0 0 1 19.797333-13.397333h56.405334a21.333333 21.333333 0 0 1 19.84 13.397333zM725.333333 549.76L672.128 682.666667h106.325333L725.333333 549.76zM341.333333 106.666667V170.666667h149.333334a21.333333 21.333333 0 0 1 21.333333 21.333333v256a21.333333 21.333333 0 0 1-21.333333 21.333333H341.333333v106.666667a21.333333 21.333333 0 0 1-21.333333 21.333333h-42.666667a21.333333 21.333333 0 0 1-21.333333-21.333333V469.333333H106.666667a21.333333 21.333333 0 0 1-21.333334-21.333333v-256a21.333333 21.333333 0 0 1 21.333334-21.333333H256V106.666667a21.333333 21.333333 0 0 1 21.333333-21.333334h42.666667a21.333333 21.333333 0 0 1 21.333333 21.333334z m384 21.333333a170.666667 170.666667 0 0 1 170.666667 170.666667v42.666666a42.666667 42.666667 0 0 1-85.333333 0V298.666667a85.333333 85.333333 0 0 0-85.333334-85.333334h-85.333333a42.666667 42.666667 0 0 1 0-85.333333h85.333333zM256 256H170.666667v128h85.333333V256z m170.666667 0H341.333333v128h85.333334V256z"
+                fill="#e6e6e6" p-id="4288"></path>
+        </svg>
+        `; // 可以是文字也可以换成图标(如 SVG)
+
+        // 4. 创建“控制面板”
+        const panel = document.createElement('div');
+        panel.id = 'myScript-panel';
+        panel.innerHTML = `
+        <div style="margin-bottom:8px;">这里是控制面板内容</div>
+        <!-- 你可以在这里添加按钮、文字、状态信息等 -->
+        <!-- <button id="myScript-manualFetchBtn">手动获取题目</button> -->
+    `;
+
+        // 5. 图标点击事件：切换面板的显示/隐藏
+        toggleIcon.addEventListener('click', () => {
+            if (panel.style.display === 'none') {
+                panel.style.display = 'block';
+            } else {
+                panel.style.display = 'none';
+            }
+        });
+
+        // 6. 将图标和面板一起放入容器，再放进页面
+        container.appendChild(toggleIcon);
+        container.appendChild(panel);
+        document.body.appendChild(container);
+    }
 
     /**
      * 解析页面中的题目与选项数据
