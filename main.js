@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         D2L Quiz Scraper
 // @namespace    http://tampermonkey.net/
-// @version      0.5
+// @version      0.6
 // @description  抓取 D2L Quiz 中的选择题题目与选项
 // @author       William
 // @match https://avenue.cllmcmaster.ca/d2l/lms/quizzing/user/attempt/*
