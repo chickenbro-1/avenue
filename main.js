@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         D2L Quiz Scraper
 // @namespace    http://tampermonkey.net/
-// @version      1.7
+// @version      1.8
 // @description  抓取 D2L Quiz 中的单选选择题题目与选项，并在获取答案后自动填写
 // @author       GrumpyCat
 // @match        https://avenue.cllmcmaster.ca/d2l/lms/quizzing/user/attempt/*
@@ -59,6 +59,7 @@
                 let answerText = answerBlock
                     ? decodeHtml(answerBlock.getAttribute('html'))
                     : '';
+                //匹配判断题
                 if (!answerText) {
                     const answerBoolean = row.querySelector('label[for]');
                     console.log("answerBoolean",answerBoolean)
@@ -87,29 +88,52 @@
         return quizData;
     }
 
+    // function autoSelectAnswers(serverAnswers, quizData) {
+    //     const letterToIndex = (letter) => letter.toUpperCase().charCodeAt(0) - 'A'.charCodeAt(0) + 1;
+
+    //     serverAnswers.forEach(({ id, answer }) => {
+    //         const questionObj = quizData.find(q => q.id === id);
+    //         if (!questionObj) {
+    //             console.warn(`找不到题号id=${id}对应的题目`);
+    //             return;
+    //         }
+    //         const ansIndex = letterToIndex(answer);  // "A" -> 1
+    //         const targetAns = questionObj.answers.find(a => a.index === ansIndex);
+    //         if (!targetAns) {
+    //             console.warn(`题${id}中找不到对应选项:${answer}`);
+    //             return;
+    //         }
+    //         const inputEl = document.getElementById(targetAns.inputId);
+    //         if (inputEl) {
+    //             inputEl.click();
+    //         } else {
+    //             console.warn(`找不到对应radio: #${targetAns.inputId}，无法自动点选`);
+    //         }
+    //     });
+    // }
     function autoSelectAnswers(serverAnswers, quizData) {
         const letterToIndex = (letter) => letter.toUpperCase().charCodeAt(0) - 'A'.charCodeAt(0) + 1;
-
+    
         serverAnswers.forEach(({ id, answer }) => {
             const questionObj = quizData.find(q => q.id === id);
             if (!questionObj) {
                 console.warn(`找不到题号id=${id}对应的题目`);
                 return;
             }
-            const ansIndex = letterToIndex(answer);  // "A" -> 1
+            const ansIndex = letterToIndex(answer); // "A" -> 1
             const targetAns = questionObj.answers.find(a => a.index === ansIndex);
             if (!targetAns) {
                 console.warn(`题${id}中找不到对应选项:${answer}`);
                 return;
             }
-            const inputEl = document.getElementById(targetAns.inputId);
-            if (inputEl) {
-                inputEl.click();
+            if (typeof SetRadioButtonAsSelected === 'function') {
+                SetRadioButtonAsSelected(targetAns.inputId);
             } else {
-                console.warn(`找不到对应radio: #${targetAns.inputId}，无法自动点选`);
+                console.warn(`全局环境下找不到 SetRadioButtonAsSelected 函数，无法自动选择`);
             }
         });
     }
+    
     function postQuizData(quizData) {
         return new Promise((resolve, reject) => {
             GM_xmlhttpRequest({
