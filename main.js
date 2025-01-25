@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         D2L Quiz Scraper
 // @namespace    http://tampermonkey.net/
-// @version      1.1
+// @version      1.2
 // @description  抓取 D2L Quiz 中的选择题题目与选项，并在获取答案后自动填写
 // @author       GrumpyCat
 // @match        https://avenue.cllmcmaster.ca/d2l/lms/quizzing/user/attempt/*
@@ -11,9 +11,12 @@
 
 (function () {
     'use strict';
+    let controlPanelInitialized = false;
 
     window.addEventListener('load', () => {
-        initControlPanel();
+        if (document.readyState === 'complete') {
+            initControlPanel();
+        }
         // 1. 获取本地的 quizData（题目+选项+选项对应的<input> ID等）
         const quizData = parseQuizData();
         if (quizData.length === 0) {
@@ -48,9 +51,10 @@
  * 在脚本最后或合适位置插入此函数，并在 window.load 回调中调用它
  */
     function initControlPanel() {
-        if (document.getElementById('myScript-controlContainer')) {
-            return;
+        if (controlPanelInitialized || document.getElementById('myScript-controlContainer')) {
+            return; // 已经初始化过，直接返回
         }
+        controlPanelInitialized = true;
         // 1. 注入样式(可自定义)
         const style = document.createElement('style');
         style.textContent = `
