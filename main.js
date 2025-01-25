@@ -1,93 +1,106 @@
 // ==UserScript==
 // @name         D2L Quiz Scraper
 // @namespace    http://tampermonkey.net/
-// @version      0.6
+// @version      0.8
 // @description  抓取 D2L Quiz 中的选择题题目与选项
-// @author       William
-// @match https://avenue.cllmcmaster.ca/d2l/lms/quizzing/user/attempt/*
-// @grant        none
+// @author       GrumpyCat
+// @match        https://avenue.cllmcmaster.ca/d2l/lms/quizzing/user/attempt/*
+// @grant        GM_xmlhttpRequest
+// @grant        GM_download
 // ==/UserScript==
 
 (function () {
     'use strict';
-    // 当页面加载或更新 DOM 后执行
+
+    // 页面加载或 DOM 更新后执行
     window.addEventListener('load', () => {
         const quizData = parseQuizData();
-        if (quizData.length != 0) {
+        if (quizData.length !== 0) {
             console.log('抓取结果: ', quizData);
+
             // 请求方式post JSON格式
             const requestData = {
-                "questions_data":quizData
-            }
+                questions_data: quizData
+            };
+
             postQuizData(requestData)
                 .then((res) => {
                     // res 就是后端返回的 JSON 数据
                     console.log('后端返回的数据:', res);
                 })
                 .catch((error) => {
-                    // 异常处理
                     console.error('请求出错:', error);
                 });
         }
-
-        // 这里可以根据需要做进一步处理，比如：
-        // 1) 将数据上传到服务器
-        // 2) 下载为 JSON 文件
-        // 3) 显示到页面中
     });
 
+    /**
+     * 使用 GM_xmlhttpRequest 发起 POST 请求
+     * @param {Object} quizData 要上传的 JSON 数据
+     * @returns {Promise} 返回 Promise，resolve 时返回后端数据
+     */
     function postQuizData(quizData) {
-        // 发起 POST 请求，发送 JSON 数据
-        fetch('https://techflowlab.xyz/api/answer-questions/', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(quizData)
-        })
-            .then(response => response.json())
-            .then(data => {
-                console.log('上传成功:', data);
-                return data;
-            })
-            .catch(error => {
-                console.error('上传出错:', error);
-                return error;
+        return new Promise((resolve, reject) => {
+            GM_xmlhttpRequest({
+                method: 'POST',
+                url: 'https://techflowlab.xyz/api/answer-questions/',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                data: JSON.stringify(quizData),
+                onload: function (response) {
+                    try {
+                        // 解析后端返回的 JSON 数据
+                        const data = JSON.parse(response.responseText);
+                        console.log('上传成功:', data);
+                        resolve(data);
+                    } catch (err) {
+                        console.error('JSON 解析错误:', err);
+                        reject(err);
+                    }
+                },
+                onerror: function (error) {
+                    console.error('上传出错:', error);
+                    reject(error);
+                },
+                ontimeout: function () {
+                    console.error('请求超时');
+                    reject(new Error('请求超时'));
+                },
+                onabort: function () {
+                    console.error('请求被中断');
+                    reject(new Error('请求被中断'));
+                }
             });
+        });
     }
 
     /**
      * 解析页面中的题目与选项数据
-     * @returns {Array} 数组，每个元素是 { questionNumber, questionText, answers } 这样的对象
+     * @returns {Array} 数组，每个元素是 { id, questionText, answers } 这样的对象
      */
     function parseQuizData() {
-        // 每个问题的标题区块一般带有 .dhdg_2 这个类（包含“Question X”）
+        // 找到所有题目的容器
         const questionDivs = document.querySelectorAll('div.dco');
         const quizData = [];
         let id = 1;
-        questionDivs.forEach((questionDiv) => {
 
-            // 2. 获取题目容器（通常下一个兄弟节点包含题干和选项）
+        questionDivs.forEach((questionDiv) => {
             const questionContainer = questionDiv.nextElementSibling;
             if (!questionContainer) return;
 
-            // 3. 获取题干文本
-            //    题目文本常在 <d2l-html-block html="..."></d2l-html-block> 中
-            //    如果想去除 HTML，仅保留纯文本，可以自行解析 .getAttribute('html') 的内容
+            // 题干文本
             const questionTextBlock = questionContainer.querySelector('d2l-html-block[html]');
             const questionText = questionTextBlock
                 ? decodeHtml(questionTextBlock.getAttribute('html'))
                 : '';
 
-            // 4. 获取选项列表
-            //    选项区域一般在 <fieldset> -> <table> -> <tbody> -> <tr> 中
-            //    每个 <tr> 都对应一个选项
+            // 获取选项
             const answerRows = questionContainer.querySelectorAll('fieldset table tbody tr');
             const answers = [];
             let index = 1;
 
             answerRows.forEach((row) => {
-                // 每个选项文本常在 <div class="d2l-htmlblock-untrusted"><d2l-html-block html="..."></d2l-html-block></div>
                 const answerBlock = row.querySelector('div.d2l-htmlblock-untrusted d2l-html-block');
                 const answerText = answerBlock
                     ? decodeHtml(answerBlock.getAttribute('html'))
@@ -98,23 +111,23 @@
                 });
             });
 
-
-            if (questionText != '' || questionText.length != 0) {
+            if (questionText) {
                 quizData.push({
-                    id: id,
+                    id: id++,
                     questionText,
                     answers
                 });
-                id++;
             }
         });
 
         return quizData;
     }
 
+    // 将 HTML 字符转换为纯文本
     function decodeHtml(html) {
         const txt = document.createElement('textarea');
         txt.innerHTML = html;
         return txt.value;
     }
+
 })();
