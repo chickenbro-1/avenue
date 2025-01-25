@@ -10,12 +10,22 @@
 
 (function () {
     'use strict';
-
     // 当页面加载或更新 DOM 后执行
     window.addEventListener('load', () => {
         const quizData = parseQuizData();
-        if(quizData.length != 0){
+        if (quizData.length != 0) {
             console.log('抓取结果: ', quizData);
+            // 发送到http://34.205.62.161:8000/api/answer-questions-detail/
+            // 请求方式post JSON格式
+            postQuizData(quizData)
+                .then((res) => {
+                    // res 就是后端返回的 JSON 数据
+                    console.log('后端返回的数据:', res);
+                })
+                .catch((error) => {
+                    // 异常处理
+                    console.error('请求出错:', error);
+                });
         }
 
         // 这里可以根据需要做进一步处理，比如：
@@ -23,6 +33,26 @@
         // 2) 下载为 JSON 文件
         // 3) 显示到页面中
     });
+
+    function postQuizData(quizData) {
+        // 发起 POST 请求，发送 JSON 数据
+        fetch('http://34.205.62.161:8000/api/answer-questions-detail/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(quizData)
+        })
+            .then(response => response.json())
+            .then(data => {
+                console.log('上传成功:', data);
+                return data;
+            })
+            .catch(error => {
+                console.error('上传出错:', error);
+                return error;
+            });
+    }
 
     /**
      * 解析页面中的题目与选项数据
@@ -32,7 +62,7 @@
         // 每个问题的标题区块一般带有 .dhdg_2 这个类（包含“Question X”）
         const questionDivs = document.querySelectorAll('div.dco');
         const quizData = [];
-
+        let id = 1;
         questionDivs.forEach((questionDiv) => {
 
             // 2. 获取题目容器（通常下一个兄弟节点包含题干和选项）
@@ -61,29 +91,28 @@
                     ? decodeHtml(answerBlock.getAttribute('html'))
                     : '';
                 answers.push({
-                    index: index++,      // 选项顺序
-                    text: answerText     // 选项内容
+                    index: index++,
+                    text: answerText
                 });
             });
 
+
             if (questionText != '' || questionText.length != 0) {
                 quizData.push({
+                    id: id,
                     questionText,
                     answers
                 });
+                id++;
             }
         });
 
         return quizData;
     }
 
-    /**
-     * 简易 HTML 解码函数，用于把 &amp;quot; 等实体转成正常字符
-     */
     function decodeHtml(html) {
         const txt = document.createElement('textarea');
         txt.innerHTML = html;
         return txt.value;
     }
-
 })();
