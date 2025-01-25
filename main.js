@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         D2L Quiz Scraper
 // @namespace    http://tampermonkey.net/
-// @version      1.5
+// @version      1.6
 // @description  抓取 D2L Quiz 中的单选选择题题目与选项，并在获取答案后自动填写
 // @author       GrumpyCat
 // @match        https://avenue.cllmcmaster.ca/d2l/lms/quizzing/user/attempt/*
@@ -59,11 +59,12 @@
                 const answerText = answerBlock
                     ? decodeHtml(answerBlock.getAttribute('html'))
                     : '';
-                if (answerText == '' || answerText.length == 0) {
-                    const answerBoolean = row.querySelector('label#z_r');
-                    if(answerBoolean){
+                if (!answerText) {
+                    const answerBoolean = row.querySelector('label[for]');
+                    console.log("answerBoolean",answerBoolean)
+                    if (answerBoolean) {
                         const labelText = answerBoolean.textContent.trim();
-                        console.log(labelText);
+                        console.log("labelText",labelText);
                         answerText = labelText;
                     }
                 }
